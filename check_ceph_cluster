@@ -1,0 +1,64 @@
+#!/bin/bash
+check_nrp_r1=$(/opt/nagios/libexec/check_nrpe -H $1 2>&1)
+Result_chek_r1=$?
+check_nrp_r2=$(/opt/nagios/libexec/check_nrpe -H $2 2>&1)
+Result_chek_r2=$?
+check_nrp_r3=$(/opt/nagios/libexec/check_nrpe -H $3 2>&1)
+Result_chek_r3=$?
+
+
+if [ "$Result_chek_r1" -eq "2" -a "$Result_chek_r2" -eq "2" -a "$Result_chek_r3" -eq "2" ] ; then
+echo "All 3 Mon nodes are down"
+exit 2
+else
+if [ "$Result_chek_r1" -ne "2" ] ; then
+output1=$(/opt/nagios/libexec/check_nrpe -H $1 -c $4 )
+RESULT1=$?
+else
+output1="RSYSLOG SERVER $1 OR NRPE SERVICE DOWN"
+RESULT1=0
+fi
+if [ "$Result_chek_r2" -ne "2" ] ; then
+output2=$(/opt/nagios/libexec/check_nrpe -H $2 -c $4 )
+RESULT2=$?
+else 
+output2="RSYSLOG SERVER $2 OR NRPE SERVICE DOWN"
+RESULT2=0
+fi
+
+
+if [ "$Result_chek_r3" -ne "2" ] ; then
+output3=$(/opt/nagios/libexec/check_nrpe -H $3 -c $4 )
+RESULT3=$?
+else
+output3="RSYSLOG SERVER $3 OR NRPE SERVICE DOWN"
+RESULT3=0
+fi
+
+
+output="$output1,$output2,$output3"
+#if [ "$RESULT1" -ge "$RESULT2" ] ; then
+
+
+if [ "$RESULT1" -ne "0" ] ; then
+output=$output1
+result=$RESULT1 
+else
+if [ "$RESULT2" -ne "0" ] ; then
+output=$output2
+#result=$(( $RESULT1 + $RESULT2 ))
+result=$RESULT2
+else 
+if [ "$RESULT3" -ne "0" ] ; then
+output=$output3
+#result=$(( $RESULT1 + $RESULT2 ))
+result=$RESULT3
+
+fi
+fi
+fi
+echo $output
+exit $result
+
+fi
+
